@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hackathon Check-In</title>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<style>
+  body { font-family: system-ui, sans-serif; text-align: center; padding: 20px; background:#111; color:#fff; }
+  #reader { width: 320px; margin: 20px auto; }
+  #result { font-size: 1.3em; margin-top: 20px; min-height: 60px; }
+  .ok { color: #4ade80; }
+  .err { color: #f87171; }
+</style>
+</head>
+<body>
+  <h2>Scan your QR code</h2>
+  <div id="reader"></div>
+  <div id="result">Point your camera at the QR code</div>
+
+  <script>
+    function onScanSuccess(decodedText) {
+      // Expecting QR content as JSON: {"id":"P001","name":"Aayush"}
+      let payload;
+      try {
+        payload = JSON.parse(decodedText);
+      } catch (e) {
+        payload = { id: decodedText, name: "" };
+      }
+
+      fetch('/api/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ participant_id: payload.id, name: payload.name })
+      })
+        .then(r => r.json())
+        .then(data => {
+          const el = document.getElementById('result');
+          if (data.error) {
+            el.className = 'err';
+            el.textContent = 'Error: ' + data.error;
+          } else {
+            el.className = 'ok';
+            el.textContent = `Logged: ${data.logged} at ${data.timestamp}`;
+          }
+        });
+    }
+
+    const scanner = new Html5Qrcode("reader");
+    scanner.start(
+      { facingMode: "environment" },
+      { fps: 10, qrbox: 250 },
+      onScanSuccess
+    );
+  </script>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hackathon Attendance Dashboard</title>
+<style>
+  body { font-family: system-ui, sans-serif; background:#0f1115; color:#e5e7eb; margin:0; padding:24px; }
+  h1 { font-size: 1.4em; }
+  table { width:100%; border-collapse: collapse; margin-top: 16px; }
+  th, td { text-align:left; padding:8px 10px; border-bottom:1px solid #2a2d34; }
+  th { color:#9ca3af; font-weight:600; }
+  .status-In { color:#4ade80; }
+  .status-On-Break { color:#facc15; }
+  .status-Out { color:#f87171; }
+  .status-Not-checked-in { color:#6b7280; }
+  section { background:#1a1d24; border-radius:10px; padding:16px 20px; margin-top:20px; }
+  input, select, button { padding:8px; border-radius:6px; border:1px solid #333; background:#0f1115; color:#e5e7eb; }
+  button { cursor:pointer; background:#3b82f6; border:none; color:white; }
+  #chatlog { margin-top:12px; max-height:200px; overflow-y:auto; }
+  .msg-user { color:#93c5fd; margin:6px 0; }
+  .msg-bot { color:#e5e7eb; margin:6px 0 12px; }
+  .row-grid { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+</style>
+</head>
+<body>
+  <h1>🏁 Hackathon Attendance — Live</h1>
+
+  <table id="statusTable">
+    <thead>
+      <tr><th>Name</th><th>ID</th><th>Status</th><th>Entry</th><th>Exit</th><th>Break (min)</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <section>
+    <h3>🔧 Regularize an entry</h3>
+    <div class="row-grid">
+      <input id="rId" placeholder="Participant ID">
+      <input id="rName" placeholder="Name">
+      <select id="rType">
+        <option>Entry</option>
+        <option>Break Out</option>
+        <option>Break In</option>
+        <option>Exit</option>
+      </select>
+      <input id="rTime" type="datetime-local">
+      <button onclick="regularize()">Save</button>
+    </div>
+  </section>
+
+  <section>
+    <h3>💬 Ask about today's data</h3>
+    <div id="chatlog"></div>
+    <div class="row-grid">
+      <input id="question" placeholder="e.g. Who is currently on a break?" style="flex:1;">
+      <button onclick="ask()">Ask</button>
+    </div>
+  </section>
+
+<script>
+async function refresh() {
+  const res = await fetch('/api/status');
+  const data = await res.json();
+  const tbody = document.querySelector('#statusTable tbody');
+  tbody.innerHTML = '';
+  data.forEach(p => {
+    const cls = 'status-' + p.status.replace(/\s/g, '-');
+    tbody.innerHTML += `<tr>
+      <td>${p.name || '-'}</td>
+      <td>${p.participant_id}</td>
+      <td class="${cls}">${p.status}</td>
+      <td>${p.entry_time || '-'}</td>
+      <td>${p.exit_time || '-'}</td>
+      <td>${p.break_minutes}</td>
+    </tr>`;
+  });
+}
+refresh();
+setInterval(refresh, 5000);
+
+async function regularize() {
+  const body = {
+    participant_id: document.getElementById('rId').value,
+    name: document.getElementById('rName').value,
+    event_type: document.getElementById('rType').value,
+    timestamp: document.getElementById('rTime').value.replace('T', ' ') + ':00'
+  };
+  await fetch('/api/regularize', {
+    method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
+  });
+  refresh();
+}
+
+async function ask() {
+  const q = document.getElementById('question').value;
+  if (!q) return;
+  const log = document.getElementById('chatlog');
+  log.innerHTML += `<div class="msg-user">You: ${q}</div>`;
+  document.getElementById('question').value = '';
+  const res = await fetch('/api/ask', {
+    method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({question:q})
+  });
+  const data = await res.json();
+  log.innerHTML += `<div class="msg-bot">${data.answer || data.error}</div>`;
+  log.scrollTop = log.scrollHeight;
+}
+</script>
+</body>
+</html>

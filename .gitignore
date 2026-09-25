@@ -1,0 +1,15 @@
+# Secrets — never commit these
+.env
+service_account.json
+
+# QR codes may contain participant names/IDs — keep local unless you want them public
+qr_codes/
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# Editor
+.vscode/
