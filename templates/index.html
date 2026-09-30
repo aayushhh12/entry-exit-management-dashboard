@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hackathon Attendance</title>
+<style>
+  body { font-family: system-ui, sans-serif; background:#0f1115; color:#e5e7eb; display:flex; align-items:center; justify-content:center; min-height:100vh; margin:0; flex-direction:column; }
+  h1 { margin-bottom: 30px; }
+  .grid { display:flex; gap:24px; flex-wrap:wrap; justify-content:center; }
+  .tile { background:#1a1d24; padding:36px 30px; border-radius:14px; width:170px; text-align:center; cursor:pointer; transition:0.15s; }
+  .tile:hover { background:#23272f; }
+  .tile .icon { font-size:2.4em; margin-bottom:12px; }
+</style>
+</head>
+<body>
+  <h1>🏁 Hackathon Attendance</h1>
+  <div class="grid">
+    <div class="tile" onclick="location.href='/scan'">
+      <div class="icon">📷</div>
+      Scan QR
+    </div>
+    <div class="tile" onclick="location.href='/dashboard'">
+      <div class="icon">📊</div>
+      Dashboard
+    </div>
+  </div>
+</body>
+</html>

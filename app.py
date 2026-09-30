@@ -128,6 +128,10 @@ def compute_statuses(records):
 
 # ---------- Routes: pages ----------
 
+@app.route("/")
+def index_page():
+    return render_template("index.html")
+
 @app.route("/dashboard")
 def dashboard_page():
     return render_template("dashboard.html")
